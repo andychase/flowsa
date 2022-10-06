@@ -34,7 +34,11 @@ jobs:
 
     - name: Test FBA config
       run: |
-        python flowsa/test_methods.py
+        for m in $(python flowsa/test_methods.py list)
+        do
+          echo "python flowsa/test_methods.py $m"
+          python flowsa/test_methods.py "$m"
+        done
 
   FBS_testing:
     runs-on: ubuntu-latest
