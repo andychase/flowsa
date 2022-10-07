@@ -1,6 +1,8 @@
 """
 Tests to run during github action
 """
+import sys
+
 import pytest
 import os
 from flowsa import seeAvailableFlowByModels
@@ -10,8 +12,9 @@ from flowsa.validation import compare_FBS_results
 from flowsa.common import check_method_status
 from esupy.processed_data_mgmt import download_from_remote
 
+
 @pytest.mark.skip(reason="Perform targeted test for compare_FBS on PR")
-def test_FBS_against_remote():
+def test_FBS_against_remote(only_run_m=None):
     """Compare results for each FBS method at current HEAD with most
     recent FBS stored on remote server."""
     outdir = diffpath
@@ -19,6 +22,8 @@ def test_FBS_against_remote():
     if not os.path.exists(outdir):
         os.mkdir(outdir)
     for m in seeAvailableFlowByModels("FBS", print_method=False):
+        if only_run_m is not None and m != only_run_m:
+            continue
         status = download_from_remote(set_fb_meta(m, "FlowBySector"),
                                       paths)
         if not status:
@@ -41,5 +46,11 @@ def test_FBS_against_remote():
         else:
             print(f"***No differences found in {m}***")
 
+
 if __name__ == "__main__":
-    test_FBS_against_remote()
+    if len(sys.argv) < 2:
+        test_FBS_against_remote()
+    elif sys.argv[1] == "list":
+        print("\n".join(seeAvailableFlowByModels("FBS", print_method=False)))
+    else:
+        test_FBS_against_remote(sys.argv[1])
